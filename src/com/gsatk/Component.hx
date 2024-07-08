@@ -271,6 +271,9 @@ class Component extends Referenceable<Component> implements ComponentActions imp
      * Clicks the component.
      **/
     public function click() : Void {
+        if (_cache == null) {
+            existI();
+        }
         if (_cache != null) {
             _cache.click();
         }

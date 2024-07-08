@@ -36,6 +36,33 @@ class Automation extends Referenceable<State> {
     private var _delay : Int = 1000;
     private var _document : Dynamic;
 
+    private static function check(value : Dynamic, field : String, components : Array<Component>, states : Array<State>) : Void {
+        if (Std.isOfType(value, Component)) {
+            var c : Component = cast value;
+            components.push(c);
+            if (field != null) {
+                c.assignReference(field);
+            }
+        } else if (Std.isOfType(value, State)) {
+            var s : State = cast value;
+            states.push(s);
+            s.assignReference(field);
+            if (field != null) {
+                s.assignReference(field);
+            }
+        } else if (Std.isOfType(value, Array)) {
+            var a : Array<Dynamic> = cast value;
+            for (i in a) {
+                check(i, null, components, states);
+            }
+        } else if (Std.isOfType(value, haxe.ds.StringMap) || Std.isOfType(value, haxe.ds.IntMap) || Std.isOfType(value, haxe.ds.ObjectMap)) {
+            var m : Map<Dynamic, Dynamic> = cast value;
+            for (k in m.keys()) {
+                check(m.get(k), null, components, states);
+            }
+        }
+    }
+
     /**
      * Creates a new Automation object.
      **/
@@ -45,16 +72,7 @@ class Automation extends Referenceable<State> {
         var states : Array<State> = new Array<State>();
 
         for (field in Reflect.fields(this)) {
-            var value : Dynamic = Reflect.field(this, field);
-            if (Std.isOfType(value, Component)) {
-                var c : Component = cast value;
-                components.push(c);
-                c.assignReference(field);
-            } else if (Std.isOfType(value, State)) {
-                var s : State = cast value;
-                states.push(s);
-                s.assignReference(field);
-            }
+            check(Reflect.field(this, field), field, components, states);
         }
 
         _components = components;
